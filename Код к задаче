@@ -1,0 +1,108 @@
+#include <iostream>
+#include <queue>
+#include <unordered_map>
+#include <vector>
+#include <string>
+#include <cmath>
+#include <algorithm>
+
+// Структура для узла дерева Хаффмана
+struct HuffmanNode {
+    char character;
+    int frequency;
+    HuffmanNode* left;
+    HuffmanNode* right;
+
+    HuffmanNode(char ch, int freq) : character(ch), frequency(freq), left(nullptr), right(nullptr) {}
+    HuffmanNode(int freq) : character('\0'), frequency(freq), left(nullptr), right(nullptr) {}
+
+    // Перегрузка оператора для сравнения узлов (для priority_queue)
+    bool operator<(const HuffmanNode& other) const {
+        return frequency > other.frequency; // Минимальная частота на вершине
+    }
+};
+
+// Функция для подсчета частот символов
+std::unordered_map<char, int> countFrequencies(const std::string& text) {
+    std::unordered_map<char, int> frequencies;
+    for (char ch : text) {
+        frequencies[ch]++;
+    }
+    return frequencies;
+}
+
+// Функция для построения дерева Хаффмана
+HuffmanNode* buildHuffmanTree(const std::unordered_map<char, int>& frequencies) {
+    std::priority_queue<HuffmanNode> heap;
+
+    // Добавляем все символы в кучу
+    for (const auto& pair : frequencies) {
+        heap.push(HuffmanNode(pair.first, pair.second));
+    }
+
+    // Строим дерево
+    while (heap.size() > 1) {
+        HuffmanNode* left = new HuffmanNode(heap.top());
+        heap.pop();
+        HuffmanNode* right = new HuffmanNode(heap.top());
+        heap.pop();
+
+        HuffmanNode* merged = new HuffmanNode(left->frequency + right->frequency);
+        merged->left = left;
+        merged->right = right;
+
+        heap.push(*merged);
+    }
+
+    HuffmanNode* root = new HuffmanNode(heap.top());
+    return root;
+}
+
+// Функция для построения кодов Хаффмана (рекурсивная)
+void buildHuffmanCodes(HuffmanNode* node, const std::string& prefix, std::unordered_map<char, std::string>& codes) {
+    if (node->left == nullptr && node->right == nullptr) {
+        codes[node->character] = prefix;
+        return;
+    }
+    if (node->left) {
+        buildHuffmanCodes(node->left, prefix + "0", codes);
+    }
+    if (node->right) {
+        buildHuffmanCodes(node->right, prefix + "1", codes);
+    }
+}
+
+// Функция для вычисления энтропии
+double calculateEntropy(const std::unordered_map<char, int>& frequencies, int totalCharacters) {
+    double entropy = 0.0;
+    for (const auto& pair : frequencies) {
+        double probability = static_cast<double>(pair.second) / totalCharacters;
+        entropy -= probability * log2(probability);
+    }
+    return entropy;
+}
+
+// Функция для вычисления средней длины кода
+double calculateAverageCodeLength(const std::unordered_map<char, std::string>& codes, const std::unordered_map<char, int>& frequencies, int totalCharacters) {
+    double averageLength = 0.0;
+    for (const auto& pair : frequencies) {
+        averageLength += (static_cast<double>(pair.second) / totalCharacters) * codes.at(pair.first).length();
+    }
+    return averageLength;
+}
+
+int main() {
+    std::string text = "ПОСТАВИВ БУТЫЛКУ НА ПОДОКОННИК ЧТОБЫ БЫЛО УДОБНО ДОСТАТЬ ЕЕ ДОЛОХОВ ОСТОРОЖНО И ТИХО ПОЛЕЗ В ОКНО СПУСТИВ НОГИ И РАСПЕРЕВШИСЬ ОБЕИМИ РУКАМИ В КРАЯ ОКНА ОН ПРИМЕРИЛСЯ УСЕЛСЯ ОПУСТИЛ РУКИ ПОДВИНУЛСЯ НАПРАВО НАЛЕВО И ДОСТАЛ БУТЫЛКУ АНАТОЛЬ ПРИНЕС ДВЕ СВЕЧКИ И ПОСТАВИЛ ИХ НА ПОДОКОННИК ХОТЯ БЫЛО УЖЕ СОВСЕМ СВЕТЛО СПИНА ДОЛОХОВА В БЕЛОЙ РУБАШКЕ И КУРЧАВАЯ ГОЛОВА ЕГО БЫЛИ ОСВЕЩЕНЫ С ОБЕИХ СТОРОН ВСЕ СТОЛПИЛИСЬ У ОКНА АНГЛИЧАНИН СТОЯЛ ВПЕРЕДИ ПЬЕР УЛЫБАЛСЯ И НИЧЕГО НЕ ГОВОРИЛ ОДИН ИЗ ПРИСУТСТВУЮЩИХ ПОСТАРШЕ ДРУГИХ С ИСПУГАННЫМ И СЕРДИТЫМ ЛИЦОМ ВДРУГ ПРОДВИНУЛСЯ ВПЕРЕД И ХОТЕЛ СХВАТИТЬ ДОЛОХОВА ЗА РУБАШКУ";
+
+    // Подсчет частот символов
+    std::unordered_map<char, int> frequencies = countFrequencies(text);
+    int totalCharacters = text.length();
+
+    // Вывод частот
+    std::cout << "Частоты символов:\n";
+    for (const auto& pair : frequencies) {
+        std::cout << "Символ: " << pair.first << ", Частота: " << static_cast<double>(pair.second) / totalCharacters << "\n";
+    }
+
+    // Построение дерева Хаффмана
+    HuffmanNode* root = buildHuffmanTree(frequencies);
