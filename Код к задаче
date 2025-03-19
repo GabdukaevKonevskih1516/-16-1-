@@ -106,3 +106,31 @@ int main() {
 
     // Построение дерева Хаффмана
     HuffmanNode* root = buildHuffmanTree(frequencies);
+// Построение кодов Хаффмана
+    std::unordered_map<char, std::string> huffmanCodes;
+    buildHuffmanCodes(root, "", huffmanCodes);
+
+    // Вывод кодов Хаффмана
+    std::cout << "\nКоды Хаффмана (двоичный алфавит {0, 1}):\n";
+    for (const auto& pair : huffmanCodes) {
+        std::cout << "Символ: " << pair.first << ", Код: " << pair.second << "\n";
+    }
+
+    // Вычисление энтропии
+    double entropy = calculateEntropy(frequencies, totalCharacters);
+
+    // Вычисление средней длины кода
+    double averageLength = calculateAverageCodeLength(huffmanCodes, frequencies, totalCharacters);
+
+    // Вычисление избыточности
+    double redundancy = averageLength - entropy;
+
+    std::cout << "\nЭнтропия: " << entropy << "\n";
+    std::cout << "Средняя длина кода: " << averageLength << "\n";
+    std::cout << "Избыточность: " << redundancy << "\n";
+
+    // Очистка памяти (удаление дерева)
+    // Для простоты пропустим, так как это учебный пример.
+
+    return 0;
+}
